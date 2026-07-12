@@ -43,7 +43,7 @@ models:
       aggregation_strategy: "simple"
       source: "vietmed_ner"
     - name: "xlmr_ner"
-      model_name_or_path: "C:/Users/Admin/.cache/huggingface/hub/models--leduckhai--VietMed-NER/snapshots/cccffb7de14423114f7d4bafc9f736b9d866e446/xlm-roberta-base-VietMed-NER"
+      model_name_or_path: "data/models/xlm-roberta-base-VietMed-NER"
       enabled: true
       active_parameters_billion: 0.278
       local_files_only: true

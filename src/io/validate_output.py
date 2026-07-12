@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import argparse
 import json
+import tempfile
+import zipfile
 from pathlib import Path
 
-from src.io.read_input import InputRecord
+from src.io.read_input import InputRecord, read_input_dir
 
 
 REQUIRED_FIELDS = {"text", "position", "type", "assertions", "candidates"}
@@ -52,3 +55,33 @@ def validate_output(output_dir: str | Path, records: list[InputRecord], config: 
             if key in seen:
                 raise ValueError(f"{path.name}[{idx}]: duplicate span {key}")
             seen.add(key)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Validate a Medical IE output directory or zip archive.")
+    parser.add_argument("output", help="Output directory or .zip archive")
+    parser.add_argument("--input_dir", default="data/input", help="Directory containing source .txt files")
+    parser.add_argument("--config", default="configs/default.yaml", help="Pipeline YAML config")
+    args = parser.parse_args()
+
+    from src.main import load_config
+
+    records = read_input_dir(args.input_dir)
+    config = load_config(args.config)
+    output_path = Path(args.output)
+    if output_path.is_dir():
+        validate_output(output_path, records, config)
+    elif output_path.suffix.lower() == ".zip" and output_path.is_file():
+        with tempfile.TemporaryDirectory() as temp_dir, zipfile.ZipFile(output_path) as archive:
+            root = Path(temp_dir)
+            for member in archive.namelist():
+                if member.endswith(".json"):
+                    (root / Path(member).name).write_bytes(archive.read(member))
+            validate_output(root, records, config)
+    else:
+        raise FileNotFoundError(f"Output path not found or unsupported: {output_path}")
+    print(f"Validation passed: {args.output}")
+
+
+if __name__ == "__main__":
+    main()
