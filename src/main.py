@@ -97,6 +97,13 @@ def validate_parameter_budget(config: dict) -> float:
     return total
 
 
+def filter_llm_spans(llm_spans, local_spans, mode: str):
+    if mode == "augment":
+        return llm_spans
+    local_keys = {(span.start, span.end, span.concept_type) for span in local_spans}
+    return [span for span in llm_spans if (span.start, span.end, span.concept_type) in local_keys]
+
+
 def run_pipeline(input_dir: str, output_zip: str, config_path: str = "configs/default.yaml") -> None:
     config = load_config(config_path)
     active_parameters = validate_parameter_budget(config)
@@ -115,8 +122,6 @@ def run_pipeline(input_dir: str, output_zip: str, config_path: str = "configs/de
         use_model = model_extractor is not None
         if use_model:
             spans.extend(model_extractor.extract(record, sections))
-        if llm_extractor.enabled:
-            spans.extend(llm_extractor.extract(record, sections))
         # Preserve memorized high-scoring records exactly. For unseen/private
         # records, combine model spans with recall-oriented rules.
         preserve_exact = bool(config.get("pipeline", {}).get("preserve_exact_matches", True))
@@ -129,6 +134,10 @@ def run_pipeline(input_dir: str, output_zip: str, config_path: str = "configs/de
             continue
         if use_rule:
             spans.extend(rule_extractor.extract(record, sections))
+        if llm_extractor.enabled:
+            llm_spans = llm_extractor.extract(record, sections)
+            llm_mode = str(config.get("models", {}).get("llm", {}).get("mode", "consensus"))
+            spans.extend(filter_llm_spans(llm_spans, spans, llm_mode))
         if use_model and not use_rule:
             spans = link_spans(spans, record.raw_text, sections, store, config)
             spans = predict_assertions_for_spans(spans, record.raw_text, sections, config)

@@ -29,6 +29,7 @@ models:
     max_tokens: 4096
     response_format_json: true
     confidence: 0.93
+    mode: consensus
   transformer_ner_models:
     - name: "vietmed_ner"
       model_name_or_path: "data/models/phobert-base-v2-VietMed-NER"

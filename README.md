@@ -138,13 +138,32 @@ dumps, model checkpoints, or generated outputs.
 
 ## 5. Choose a Profile
 
-### Recommended portable profile: Qwen3 + rules
+### Portable fallback profile: Qwen3 + rules
 
 This profile only requires the Qwen server and optional terminology files. It
-does not require local NER or pseudo-model checkpoints.
+does not require local NER or pseudo-model checkpoints. It is useful for smoke
+tests and unseen data, but leaderboard testing showed that it is substantially
+weaker than the pseudo-model hybrid on the current 100-record set.
 
 ```text
 configs/llm_rule.yaml
+```
+
+### Recommended competition profile: Qwen3 + pseudo-model + rules
+
+This profile restores the high-scoring local extraction baseline and uses
+Qwen3 in exact-span consensus mode. Qwen output cannot add an entity unless its
+offset and type match a local source.
+
+```text
+configs/llm_pseudo_hybrid.yaml
+```
+
+Required local artifacts:
+
+```text
+data/models/pseudo_ner_model.json
+data/models/assertion_classifier.pkl
 ```
 
 ### Full ensemble profile
@@ -169,10 +188,16 @@ because `local_files_only` is enabled.
 
 ## 6. Run End-to-End Inference
 
-Recommended server-only hybrid:
+Portable server-only fallback:
 
 ```bash
 bash run_inference.sh data/input output.zip configs/llm_rule.yaml
+```
+
+Recommended competition hybrid:
+
+```bash
+bash run_inference.sh data/input output.zip configs/llm_pseudo_hybrid.yaml
 ```
 
 Full ensemble with local checkpoints:
@@ -188,6 +213,10 @@ Windows PowerShell equivalents:
 ```
 
 ```powershell
+.\run_inference.ps1 -InputDir data/input -OutputZip output.zip -Config configs/llm_pseudo_hybrid.yaml
+```
+
+```powershell
 .\run_inference.ps1 -InputDir data/input -OutputZip output.zip -Config configs/default.yaml
 ```
 
@@ -195,6 +224,7 @@ At startup the pipeline prints the active parameter total. Expected values are:
 
 ```text
 llm_rule.yaml: 8.200B / 9.000B
+llm_pseudo_hybrid.yaml: 8.200B / 9.000B
 default.yaml:  8.478B / 9.000B
 ```
 

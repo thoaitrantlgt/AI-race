@@ -1,7 +1,7 @@
 from src.assertion.assertion_classifier import AssertionClassifier
 from src.extraction.llm_extractor import LlmExtractor
 from src.io.read_input import InputRecord
-from src.main import validate_parameter_budget
+from src.main import filter_llm_spans, validate_parameter_budget
 
 
 def test_llm_extractor_parses_and_aligns_exact_mentions():
@@ -58,3 +58,17 @@ def test_parameter_budget_accepts_qwen3_and_xlmr():
         }
     }
     assert validate_parameter_budget(config) == 8.478
+
+
+def test_llm_consensus_rejects_unverified_entities():
+    extractor = LlmExtractor({"enabled": True})
+    extractor._request = lambda _: """{
+      "entities": [
+        {"text":"ho", "position":[0,2], "type":"TRIỆU_CHỨNG", "assertions":[]},
+        {"text":"sốt", "position":[6,9], "type":"TRIỆU_CHỨNG", "assertions":[]}
+      ]
+    }"""
+    record = InputRecord("1", "1.txt", "ho và sốt")
+    llm_spans = extractor.extract(record, [])
+    local_spans = [llm_spans[0]]
+    assert filter_llm_spans(llm_spans, local_spans, "consensus") == [llm_spans[0]]

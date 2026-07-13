@@ -6,11 +6,14 @@ paths:
 
 pipeline:
   use_rule_extractor: true
-  use_model_extractor: false
+  use_model_extractor: true
+  model_path: data/models/pseudo_ner_model.json
   preserve_exact_matches: false
+  enrich_exact_matches: true
 
 models:
   parameter_budget_billion: 9.0
+  ensemble_exact_records: false
   transformer_ner_models: []
   llm:
     enabled: true
@@ -26,7 +29,9 @@ models:
     confidence: 0.93
     mode: consensus
   assertion_classifier:
-    enabled: false
+    enabled: true
+    model_name_or_path: data/models/assertion_classifier.pkl
+    local_files_only: true
 
 linking:
   max_candidates: 2
