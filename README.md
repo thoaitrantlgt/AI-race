@@ -203,6 +203,12 @@ because `local_files_only` is enabled.
 
 ## 6. Run End-to-End Inference
 
+The default command uses the recommended competition hybrid:
+
+```bash
+bash run_inference.sh data/input output.zip
+```
+
 Portable server-only fallback:
 
 ```bash
