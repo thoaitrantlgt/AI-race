@@ -19,6 +19,8 @@ TTY_KEEP = {
     "SBDF",
     "SCDG",
     "SBDG",
+    "PSN",
+    "CD",
     "GPCK",
     "BPCK",
 }
@@ -55,5 +57,6 @@ def load_rxnorm_to_store(path: str | Path, store: TerminologyStore) -> None:
                     aliases=[],
                     version="2026-07-06",
                     language="en",
+                    term_type=tty,
                 )
             )

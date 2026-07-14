@@ -136,6 +136,12 @@ tar --strip-components=1 -xf RxNorm_full_07062026.zip \
   -C data/terminology/rxnorm_2026 rrf/RXNCONSO.RRF
 ```
 
+Medication linking removes prescription directions such as `po daily` and
+`qid:prn`, matches dose strengths and ranges, and prefers compatible RxNorm
+clinical drugs and dose forms over ingredient-only concepts. Mentions with a
+missing or unsupported strength fall back to the ingredient instead of being
+forced to a different product strength.
+
 Vietnamese ICD-10 TSV/CSV/JSON files belong under:
 
 ```text
